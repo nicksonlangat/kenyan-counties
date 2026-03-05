@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "kenyan-counties"
-version = "0.2.0"
+version = "0.3.0"
 description = "A lightweight, performant, and scalable Python package for Kenyan counties, constituencies, and wards, optimized for FastAPI and Django."
 authors = ["Nick Langat <nicksonlangat95@gmail.com>"]
 readme = "README.md"
