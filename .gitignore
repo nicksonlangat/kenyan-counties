@@ -37,3 +37,6 @@ Thumbs.db
 # Dev-only data tools
 convert_data.py
 data.json
+
+# Example projects
+examples/
