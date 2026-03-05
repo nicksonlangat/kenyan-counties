@@ -60,6 +60,30 @@ app = FastAPI()
 app.include_router(router)
 ```
 
+The router exposes ready-to-use endpoints. To add custom logic, import the Pydantic models and core functions directly:
+
+```python
+from kenyan_counties.fastapi import CountyModel, ConstituencyModel, WardModel
+from kenyan_counties.core import get_county_by_name, get_wards_for_constituency
+
+@app.get("/search", response_model=CountyModel)
+def search_county(name: str):
+    county = get_county_by_name(name)
+    if not county:
+        raise HTTPException(status_code=404, detail="County not found")
+    return CountyModel(
+        code=county.code,
+        name=county.name,
+        constituencies=[
+            ConstituencyModel(
+                name=c.name,
+                wards=[WardModel(name=w.name) for w in c.wards]
+            )
+            for c in county.constituencies
+        ]
+    )
+```
+
 This adds the following endpoints:
 
 | Method | Path | Description |
@@ -87,6 +111,37 @@ python manage.py load_kenya_counties
 ```
 
 This creates `County`, `Constituency`, and `Ward` records you can query via the Django ORM.
+
+**Using the models in views or serializers:**
+
+```python
+from kenyan_counties.models import County, Constituency, Ward
+
+# In a view
+def county_list(request):
+    counties = County.objects.all()
+    ...
+
+# In a DRF serializer
+class WardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ward
+        fields = ["id", "name"]
+
+class ConstituencySerializer(serializers.ModelSerializer):
+    wards = WardSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Constituency
+        fields = ["id", "name", "wards"]
+
+class CountySerializer(serializers.ModelSerializer):
+    constituencies = ConstituencySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = County
+        fields = ["code", "name", "constituencies"]
+```
 
 ## License
 
